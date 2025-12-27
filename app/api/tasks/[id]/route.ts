@@ -5,6 +5,8 @@ import { requireAuth } from "@/lib/auth/requireAuth";
 import { requireWorkspaceMember, requireWorkspaceRole } from "@/lib/rbac/workspace.server";
 import { resolveWorkspaceIdFromTask } from "@/lib/rbac/resolve";
 import { UpdateTaskSchema } from "@/lib/validators/task";
+import type { Prisma } from "@prisma/client";
+
 
 // Works for both Next styles: params as object OR params as Promise
 async function readParamId(ctx: any): Promise<string | null> {
@@ -91,7 +93,7 @@ export async function PATCH(req: NextRequest, ctx: any) {
         ? pick(requested, ["description", "status", "priority", "dueDate"]) // MEMBER allowed fields
         : requested; // OWNER/ADMIN allowed all schema fields
 
-    const task = await prisma.$transaction(async (tx) => {
+    const task = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const updated = await tx.task.update({
         where: { id: taskId },
         data: updateData,

@@ -5,6 +5,7 @@ import { requireAuth } from "@/lib/auth/requireAuth";
 import { CreateWorkspaceSchema } from "@/lib/validators/workspace";
 import { Prisma } from "@prisma/client";
 
+
 export async function POST(req: NextRequest) {
   try {
     const userId = await requireAuth(req);
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
     const { name } = parsed.data;
 
     // Create workspace + add creator as OWNER in a transaction
-    const workspace = await prisma.$transaction(async (tx) => {
+    const workspace = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const ws = await tx.workspace.create({
         data: {
           name,

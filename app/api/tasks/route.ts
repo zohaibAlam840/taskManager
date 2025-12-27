@@ -5,6 +5,8 @@ import { requireAuth } from "@/lib/auth/requireAuth";
 import { requireWorkspaceMember, requireWorkspaceRole } from "@/lib/rbac/workspace.server";
 import { resolveWorkspaceIdFromProject } from "@/lib/rbac/resolve";
 import { CreateTaskSchema } from "@/lib/validators/task";
+import type { Prisma } from "@prisma/client";
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,7 +29,7 @@ export async function POST(req: NextRequest) {
     // recommended: OWNER/ADMIN create tasks
     await requireWorkspaceRole(userId, workspaceId, ["OWNER", "ADMIN"]);
 
-    const task = await prisma.$transaction(async (tx) => {
+    const task = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const created = await tx.task.create({
         data: {
           projectId,
