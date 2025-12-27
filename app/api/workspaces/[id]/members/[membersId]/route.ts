@@ -5,20 +5,19 @@ import { requireAuth } from "@/lib/auth/requireAuth";
 import { requireWorkspaceRole } from "@/lib/rbac/workspace.server";
 import { UpdateMemberRoleSchema } from "@/lib/validators/members";
 
+// Next 15+ safe params typing
+type Ctx = { params: Promise<{ id: string; memberId: string }> };
+
 async function countOwners(workspaceId: string) {
   return prisma.workspaceMember.count({
     where: { workspaceId, role: "OWNER" },
   });
 }
 
-export async function PATCH(
-  req: NextRequest,
-  ctx: { params: { id: string; memberId: string } }
-) {
+export async function PATCH(req: NextRequest, ctx: Ctx) {
   try {
     const userId = await requireAuth(req);
-    const workspaceId = ctx.params.id;
-    const memberId = ctx.params.memberId;
+    const { id: workspaceId, memberId } = await ctx.params;
 
     // OWNER only can change roles
     await requireWorkspaceRole(userId, workspaceId, ["OWNER"]);
@@ -68,14 +67,10 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  req: NextRequest,
-  ctx: { params: { id: string; memberId: string } }
-) {
+export async function DELETE(req: NextRequest, ctx: Ctx) {
   try {
     const userId = await requireAuth(req);
-    const workspaceId = ctx.params.id;
-    const memberId = ctx.params.memberId;
+    const { id: workspaceId, memberId } = await ctx.params;
 
     // OWNER/ADMIN can remove members
     await requireWorkspaceRole(userId, workspaceId, ["OWNER", "ADMIN"]);
