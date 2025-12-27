@@ -93,7 +93,7 @@ export async function PATCH(req: NextRequest, ctx: any) {
         ? pick(requested, ["description", "status", "priority", "dueDate"]) // MEMBER allowed fields
         : requested; // OWNER/ADMIN allowed all schema fields
 
-    const task = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const task = await prisma.$transaction(async (tx: any) => {
       const updated = await tx.task.update({
         where: { id: taskId },
         data: updateData,

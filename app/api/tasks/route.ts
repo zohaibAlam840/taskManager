@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     // recommended: OWNER/ADMIN create tasks
     await requireWorkspaceRole(userId, workspaceId, ["OWNER", "ADMIN"]);
 
-    const task = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const task = await prisma.$transaction(async (tx: any) => {
       const created = await tx.task.create({
         data: {
           projectId,

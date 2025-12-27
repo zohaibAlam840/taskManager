@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     const { name } = parsed.data;
 
     // Create workspace + add creator as OWNER in a transaction
-    const workspace = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const workspace = await prisma.$transaction(async (tx: any) => {
       const ws = await tx.workspace.create({
         data: {
           name,
