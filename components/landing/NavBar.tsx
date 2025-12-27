@@ -20,7 +20,7 @@ export default function NavBar({ user, loading }: { user: MeUser; loading: boole
         </Link>
 
         <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
-          <a className="hover:text-foreground transition-colors" href="#features">Features</a>
+
           <a className="hover:text-foreground transition-colors" href="#how">How it works</a>
           <a className="hover:text-foreground transition-colors" href="#security">Security</a>
         </nav>

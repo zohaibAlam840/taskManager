@@ -1,76 +1,58 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { useMe } from "@/lib/hooks/useMe";
 
-type FeaturesProps = {
-  onQuickTip?: () => void;
-};
+import NavBar from "./NavBar";
+import Hero from "./Hero";
+import HowItWorks from "./HowItWorks";
+import SecurityCTA from "./SecurityCTA";
+import Footer from "./Footer";
 
-export default function Features({ onQuickTip }: FeaturesProps) {
+export default function LandingPage() {
+  const router = useRouter();
+  const { user, loading } = useMe();
+
+  const primaryHref = user ? "/dashboard" : "/login";
+  const primaryLabel = user ? "Go to Dashboard" : "Get Started";
+
   return (
-    <div className="rounded-2xl border bg-background/60 p-6 sm:p-8">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Features</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Everything you need to create workspaces, collaborate with members, and manage tasks.
-          </p>
-        </div>
-
-        {onQuickTip ? (
-          <button
-            type="button"
-            onClick={onQuickTip}
-            className="shrink-0 rounded-lg border px-3 py-2 text-sm hover:bg-muted"
-          >
-            Quick tip
-          </button>
-        ) : null}
+    <div className="min-h-screen bg-background overflow-hidden">
+      {/* Background */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-24 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-gradient-to-br from-amber-200/40 via-orange-200/20 to-transparent blur-3xl" />
+        <div className="absolute top-40 -left-24 h-[420px] w-[420px] rounded-full bg-gradient-to-br from-sky-200/35 via-indigo-200/15 to-transparent blur-3xl" />
+        <div className="absolute top-72 -right-24 h-[420px] w-[420px] rounded-full bg-gradient-to-br from-emerald-200/25 via-teal-200/10 to-transparent blur-3xl" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(0,0,0,0.04),transparent_55%)] dark:bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.06),transparent_55%)]" />
       </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-xl border p-4">
-          <div className="font-medium">Workspaces</div>
-          <div className="mt-1 text-sm text-muted-foreground">
-            Organize projects by team or client with role-based access.
-          </div>
-        </div>
+      <NavBar user={user} loading={loading} />
 
-        <div className="rounded-xl border p-4">
-          <div className="font-medium">Members & Roles</div>
-          <div className="mt-1 text-sm text-muted-foreground">
-            Invite users and control permissions with OWNER / ADMIN / MEMBER roles.
-          </div>
-        </div>
+      <main className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 pt-10 pb-16">
+        <Hero
+          user={user}
+          loading={loading}
+          primaryLabel={primaryLabel}
+          onPrimary={() => router.push(primaryHref)}
+        />
 
-        <div className="rounded-xl border p-4">
-          <div className="font-medium">Tasks</div>
-          <div className="mt-1 text-sm text-muted-foreground">
-            Track status, priority, due dates, and assignments with activity logs.
-          </div>
-        </div>
 
-        <div className="rounded-xl border p-4">
-          <div className="font-medium">Projects</div>
-          <div className="mt-1 text-sm text-muted-foreground">
-            Group tasks under projects and keep work structured.
-          </div>
-        </div>
+        <section id="how" className="mt-14 sm:mt-20">
+          <HowItWorks />
+        </section>
 
-        <div className="rounded-xl border p-4">
-          <div className="font-medium">Secure by Design</div>
-          <div className="mt-1 text-sm text-muted-foreground">
-            Server-side auth checks and RBAC enforcement per request.
-          </div>
-        </div>
+        <section id="security" className="mt-14 sm:mt-20">
+          <SecurityCTA
+            primaryLabel={primaryLabel}
+            loading={loading}
+            onPrimary={() => router.push(primaryHref)}
+          />
+        </section>
 
-        <div className="rounded-xl border p-4">
-          <div className="font-medium">Fast UI</div>
-          <div className="mt-1 text-sm text-muted-foreground">
-            Optimized landing experience with a clear onboarding path.
-          </div>
-        </div>
-      </div>
+        <Footer />
+      </main>
     </div>
   );
 }

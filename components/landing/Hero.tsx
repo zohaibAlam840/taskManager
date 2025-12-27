@@ -19,12 +19,8 @@ export default function Hero({
 }) {
   return (
     <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-      {/* Left */}
+   
       <div className="space-y-6">
-        <div className="inline-flex items-center gap-2 rounded-full border bg-background/70 backdrop-blur px-3 py-1 text-sm text-muted-foreground">
-          <Sparkles className="h-4 w-4" />
-          Role-based teamwork, done cleanly.
-        </div>
 
         <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05]">
           Manage your <span className="text-muted-foreground">Team</span>, Tasks & Projects
