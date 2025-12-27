@@ -5,7 +5,7 @@ import { requireAuth } from "@/lib/auth/requireAuth";
 import { requireWorkspaceMember, requireWorkspaceRole } from "@/lib/rbac/workspace.server";
 import { resolveWorkspaceIdFromProject } from "@/lib/rbac/resolve";
 import { CreateTaskSchema } from "@/lib/validators/task";
-import type { Prisma } from "@prisma/client";
+
 
 
 export async function POST(req: NextRequest) {
