@@ -39,6 +39,7 @@ export default function LoginClient() {
       toast.error(e?.message ?? "Login failed");
     }
   }
+  console.log("DATABASE_URL (sanitized):", process.env.DATABASE_URL?.replace(/\/\/.*?:.*?@/, "//***:***@"));
 
   return (
     <Card>
