@@ -5,10 +5,8 @@ import { requireAuth } from "@/lib/auth/requireAuth";
 import { requireWorkspaceMember, requireWorkspaceRole } from "@/lib/rbac/workspace.server";
 import { resolveWorkspaceIdFromTask } from "@/lib/rbac/resolve";
 import { UpdateTaskSchema } from "@/lib/validators/task";
+import { publish } from "@/lib/realtime/bus"; // ✅ ADD
 
-
-
-// Works for both Next styles: params as object OR params as Promise
 async function readParamId(ctx: any): Promise<string | null> {
   const p = ctx?.params;
   if (!p) return null;
@@ -61,6 +59,7 @@ export async function PATCH(req: NextRequest, ctx: any) {
       where: { id: taskId },
       select: {
         id: true,
+        projectId: true,
         title: true,
         description: true,
         status: true,
@@ -71,18 +70,13 @@ export async function PATCH(req: NextRequest, ctx: any) {
     });
     if (!before) return NextResponse.json({ error: "Task not found" }, { status: 404 });
 
-    // RBAC rule: MEMBER can only update if assigned to them
     if (membership.role === "MEMBER" && before.assignedTo !== userId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // RBAC hardening:
-    // - OWNER/ADMIN can update any fields (allowed by schema)
-    // - MEMBER (even if assigned) should NOT be able to reassign or rename arbitrarily (unless you want that)
     const requested = parsed.data as any;
 
     if (membership.role === "MEMBER") {
-      // If they attempt restricted fields, block it explicitly
       if (requested.assignedTo !== undefined || requested.title !== undefined) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
@@ -90,10 +84,10 @@ export async function PATCH(req: NextRequest, ctx: any) {
 
     const updateData =
       membership.role === "MEMBER"
-        ? pick(requested, ["description", "status", "priority", "dueDate"]) // MEMBER allowed fields
-        : requested; // OWNER/ADMIN allowed all schema fields
+        ? pick(requested, ["description", "status", "priority", "dueDate"])
+        : requested;
 
-    const task = await prisma.$transaction(async (tx: any) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       const updated = await tx.task.update({
         where: { id: taskId },
         data: updateData,
@@ -120,7 +114,48 @@ export async function PATCH(req: NextRequest, ctx: any) {
       return updated;
     });
 
-    return NextResponse.json({ task }, { status: 200 });
+    // ✅ SSE notifications after update
+    const oldAssignee = before.assignedTo ?? null;
+    const newAssignee = result.assignedTo ?? null;
+
+    // notify assignee changes
+    if (oldAssignee !== newAssignee) {
+      if (newAssignee) {
+        publish(`user:${newAssignee}`, {
+          type: "TASK_ASSIGNED",
+          taskId: result.id,
+          title: result.title,
+          projectId: result.projectId,
+          byUserId: userId,
+        });
+      }
+      if (oldAssignee) {
+        publish(`user:${oldAssignee}`, {
+          type: "TASK_UNASSIGNED",
+          taskId: result.id,
+          title: result.title,
+          projectId: result.projectId,
+          byUserId: userId,
+        });
+      }
+    } else {
+      // notify general updates to current assignee
+      if (newAssignee) {
+        const action = buildUpdateAction(before, result);
+        if (action) {
+          publish(`user:${newAssignee}`, {
+            type: "TASK_UPDATED",
+            taskId: result.id,
+            title: result.title,
+            projectId: result.projectId,
+            message: action,
+            byUserId: userId,
+          });
+        }
+      }
+    }
+
+    return NextResponse.json({ task: result }, { status: 200 });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message ?? "Server error" }, { status: e?.status ?? 500 });
   }
@@ -138,10 +173,26 @@ export async function DELETE(req: NextRequest, ctx: any) {
     const workspaceId = await resolveWorkspaceIdFromTask(taskId);
     if (!workspaceId) return NextResponse.json({ error: "Task not found" }, { status: 404 });
 
-    // Only OWNER/ADMIN can delete tasks
     await requireWorkspaceRole(userId, workspaceId, ["OWNER", "ADMIN"]);
 
+    // optional: fetch before delete to notify assignee
+    const before = await prisma.task.findUnique({
+      where: { id: taskId },
+      select: { id: true, title: true, projectId: true, assignedTo: true },
+    });
+
     await prisma.task.delete({ where: { id: taskId } });
+
+    if (before?.assignedTo) {
+      publish(`user:${before.assignedTo}`, {
+        type: "TASK_DELETED",
+        taskId: before.id,
+        title: before.title,
+        projectId: before.projectId,
+        byUserId: userId,
+      });
+    }
+
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message ?? "Server error" }, { status: e?.status ?? 500 });

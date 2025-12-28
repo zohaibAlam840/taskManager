@@ -5,8 +5,7 @@ import { requireAuth } from "@/lib/auth/requireAuth";
 import { requireWorkspaceMember, requireWorkspaceRole } from "@/lib/rbac/workspace.server";
 import { resolveWorkspaceIdFromProject } from "@/lib/rbac/resolve";
 import { CreateTaskSchema } from "@/lib/validators/task";
-
-
+import { publish } from "@/lib/realtime/bus"; 
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,10 +22,7 @@ export async function POST(req: NextRequest) {
     const workspaceId = await resolveWorkspaceIdFromProject(projectId);
     if (!workspaceId) return NextResponse.json({ error: "Project not found" }, { status: 404 });
 
-    // must be member
     await requireWorkspaceMember(userId, workspaceId);
-
-    // recommended: OWNER/ADMIN create tasks
     await requireWorkspaceRole(userId, workspaceId, ["OWNER", "ADMIN"]);
 
     const task = await prisma.$transaction(async (tx: any) => {
@@ -60,6 +56,17 @@ export async function POST(req: NextRequest) {
 
       return created;
     });
+
+    // ✅ SSE notification if assigned on create
+    if (task.assignedTo) {
+      publish(`user:${task.assignedTo}`, {
+        type: "TASK_ASSIGNED",
+        taskId: task.id,
+        title: task.title,
+        projectId: task.projectId,
+        byUserId: userId,
+      });
+    }
 
     return NextResponse.json({ task }, { status: 201 });
   } catch (e: any) {

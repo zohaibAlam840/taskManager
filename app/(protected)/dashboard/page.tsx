@@ -174,7 +174,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="pt-0">
             <div className="text-3xl font-semibold">{loading ? "…" : totalProjects}</div>
-            <div className="mt-2 text-xs text-muted-foreground">Across all workspaces (if counts available)</div>
+            <div className="mt-2 text-xs text-muted-foreground">Across all workspaces </div>
           </CardContent>
         </Card>
 
@@ -186,7 +186,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="pt-0">
             <div className="text-3xl font-semibold">{loading ? "…" : totalMembers}</div>
-            <div className="mt-2 text-xs text-muted-foreground">Total members (if counts available)</div>
+            <div className="mt-2 text-xs text-muted-foreground">Total members </div>
           </CardContent>
         </Card>
 
