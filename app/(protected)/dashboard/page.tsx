@@ -203,7 +203,14 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-      <WorkspacesTable items={items} loading={loading} onChanged={refresh} />
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-medium">Your workspaces</div>
+          <div className="text-xs text-muted-foreground">Manage & open workspaces</div>
+        </div>
+        <WorkspacesTable items={items} loading={loading} onChanged={refresh} />
+      </div>
+      
 
       {/* Charts row */}
       <div className="grid gap-4 lg:grid-cols-3">
@@ -284,13 +291,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Table */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="text-sm font-medium">Your workspaces</div>
-          <div className="text-xs text-muted-foreground">Manage & open workspaces</div>
-        </div>
-        
-      </div>
+      
     </div>
   );
 }
