@@ -178,6 +178,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
+
         <Card className="rounded-2xl">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
@@ -202,6 +203,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+      <WorkspacesTable items={items} loading={loading} onChanged={refresh} />
 
       {/* Charts row */}
       <div className="grid gap-4 lg:grid-cols-3">
@@ -287,7 +289,7 @@ export default function DashboardPage() {
           <div className="text-sm font-medium">Your workspaces</div>
           <div className="text-xs text-muted-foreground">Manage & open workspaces</div>
         </div>
-        <WorkspacesTable items={items} loading={loading} onChanged={refresh} />
+        
       </div>
     </div>
   );
